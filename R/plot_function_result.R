@@ -314,6 +314,7 @@ plot_single_deg <- function(deg, genes, type = c("contrast", "centered"), plot =
 ## Plot heatmap
 setGeneric("plot_heatmap", function(object,
                                     type = c("centered","contrast"),
+                                    significant_only = TRUE,
                                     manual_contrast = NULL,
                                     kmeans = FALSE, k = 6,
                                     color = c("RdBu", "RdYlBu", "RdYlGn", "BrBG", "PiYG", "PRGn", "PuOr", "RdGy", "Spectral"), col_limit = 6,
@@ -338,6 +339,7 @@ setGeneric("plot_heatmap", function(object,
 #' object for which differentially enriched proteins are annotated
 #' (output from \code{\link{test_diff}()} and \code{\link{add_rejections}()}).
 #' @param type type 'contrast' or 'centered',
+#' @param significant_only Logical(1),
 #' The type of data scaling used for plotting.
 #' Either the fold change ('contrast') or
 #' the centered log2-intensity ('centered').
@@ -408,7 +410,7 @@ setMethod("plot_heatmap",
           "SummarizedExperiment",
           function(object, ...){
             .plot_heatmap.se(object = object,
-                             type = type, manual_contrast = manual_contrast, kmeans = kmeans, k = k,
+                             type = type, significant_only = TRUE ,manual_contrast = manual_contrast, kmeans = kmeans, k = k,
                              color = color, col_limit = col_limit, indicate = indicate, row_font_size = row_font_size,
                              col_font_size = col_font_size, clustering_distance = clustering_distance, split_order = split_order,
                              label_few_peptide_rows = label_few_peptide_rows, chooseToshow = chooseToshow, plot = plot,
@@ -418,6 +420,7 @@ setMethod("plot_heatmap",
 )
 .plot_heatmap.se <- function (object,
                              type = c("centered","contrast"),
+                             significant_only = TRUE,
                              manual_contrast = NULL,
                              # same_trend = FALSE,
                              kmeans = FALSE, k = 6,
@@ -444,7 +447,7 @@ setMethod("plot_heatmap",
   if (is.integer(col_font_size))
     col_font_size <- as.numeric(col_font_size)
   assertthat::assert_that(inherits(object, "SummarizedExperiment"),
-                          is.character(type), is.logical(kmeans), is.numeric(k),
+                          is.character(type), is.logical(significant_only), is.logical(kmeans), is.numeric(k),
                           length(k) == 1, is.numeric(col_limit), length(col_limit) ==
                             1, is.numeric(row_font_size), length(row_font_size) ==
                             1, is.numeric(col_font_size), length(col_font_size) ==
@@ -473,7 +476,12 @@ setMethod("plot_heatmap",
 
   cat()
   ## exctract signicant protein
-  filtered <- get_signicant(object, contrast = manual_contrast)
+  if(significant_only){
+    filtered <- get_signicant(object, contrast = manual_contrast)
+  } else{
+    filtered <- object
+    }
+  
   colname <- colnames(assay(filtered))
 
 
